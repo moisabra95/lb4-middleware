@@ -17,6 +17,70 @@ Please ★ this repo if you found it useful ★ ★ ★
 ```sh
 npm install --save lb4-middleware
 ```
+Edit `src/sequence.ts`
+```typescript
+import {MiddlewareAction } from 'lb4-middleware';
+...
+export class MySequence implements SequenceHandler {
+  constructor(
+    ...
+    //---------
+    public middlewareAction: MiddlewareAction
+    //---------
+  ) {}
+
+  async handle(context: RequestContext) {
+    try {
+      ...
+
+      //---------
+      await this.middlewareAction(context);
+      //---------
+
+      const result = await this.invoke(route, args);
+      this.send(response, result);
+    } catch (err) {
+      this.reject(context, err);
+    }
+  }
+```
+Edit `src/application.ts`
+
+```typescript
+import {MiddlewareComponent} from 'lb4-middleware';
+
+ ...
+ constructor(options: ApplicationConfig = {}) {
+  ...
+  //---------
+  this.component(MiddlewareComponent);
+  //---------
+  ...
+ }
+```
+
+In Controller
+```typescript
+import { middleware, NextFunction } from 'lb4-middleware';
+import {  Request,  get,Response} from '@loopback/rest';
+
+@middleware((_req: Request, _res: Response, next: NextFunction) => {
+  console.log('middleware');
+  return next();
+})
+
+@get('/ping')
+
+ping(): object {
+  return {
+    greeting: 'Hello from LoopBack',
+    date: new Date(),
+    url: this.req.url,
+    headers: Object.assign({}, this.req.headers)
+  };
+}
+
+```
 
 ## Dependencies
 
